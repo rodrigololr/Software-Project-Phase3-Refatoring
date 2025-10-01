@@ -65,7 +65,8 @@ class SocialMediaPost(ABC):
             elif isinstance(block, CaroulselBlock):
                 for media in block.medias:
                     media_blocks.append(
-                        MediaBlock(order=block.order, media=media, alt=block.alt)
+                        MediaBlock(order=block.order,
+                                   media=media, alt=block.alt)
                     )
 
         return media_blocks
@@ -112,7 +113,8 @@ class SocialMediaPost(ABC):
         print("─" * 40)
         print(suggested_text)
         print("─" * 40)
-        print(f"📊 Caracteres: {len(suggested_text)}/{self.get_character_limit()}")
+        print(
+            f"📊 Caracteres: {len(suggested_text)}/{self.get_character_limit()}")
 
         print("\n📋 INFORMAÇÕES DA PLATAFORMA:")
         print(f"   • Limite de caracteres: {self.get_character_limit()}")
@@ -120,7 +122,8 @@ class SocialMediaPost(ABC):
 
         print(f"\n{self.get_media_summary()}")
 
-        print(f"💡 DICAS PARA {self.__class__.__name__.replace('Post', '').upper()}:")
+        print(
+            f"💡 DICAS PARA {self.__class__.__name__.replace('Post', '').upper()}:")
         print(f"   {self.get_media_recommendation()}")
 
         print(f"\n{'=' * 60}")
@@ -272,11 +275,16 @@ def build_social_media_post(
     post: Post,
     language: Language,
 ) -> SocialMediaPost:
-    post_cls = _social_media_map.get(platform)
-    if not post_cls:
-        raise ValueError(f"Plataforma desconhecida: {platform}")
+    """constroi um SocialMediaPost usando o Factory Method
 
-    return post_cls(original_post=post, language=language)
+    em vez de pegar diretamente para a classe concreta, delegamos a
+    responsabilidade para a factory apropriada (SocialMediaPoster)
+    isso mantem a compatibility com a assinatura existente enquanto
+    aplica o padrão Factory method
+    """
+    poster = get_social_media_poster(platform)
+    return poster.create_post(post, language)
+
 
 class SocialMediaPoster(ABC):
     """Interface da Fábrica (Creator)."""
@@ -288,20 +296,27 @@ class SocialMediaPoster(ABC):
         product_class = self.factory_method()
         return product_class(original_post=post, language=language)
 
+
 class FacebookPoster(SocialMediaPoster):
     """Fábrica Concreta para o Facebook."""
+
     def factory_method(self) -> Type[SocialMediaPost]:
         return FacebookPost
 
+
 class InstagramPoster(SocialMediaPoster):
     """Fábrica Concreta para o Instagram."""
+
     def factory_method(self) -> Type[SocialMediaPost]:
         return InstagramPost
 
+
 class TwitterPoster(SocialMediaPoster):
     """Fábrica Concreta para o Twitter."""
+
     def factory_method(self) -> Type[SocialMediaPost]:
         return TwitterPost
+
 
 def get_social_media_poster(platform: SocialMedia) -> SocialMediaPoster:
     """Função que seleciona a fábrica correta."""

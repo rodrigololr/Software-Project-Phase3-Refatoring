@@ -13,7 +13,8 @@ from cms.services.post_builder import PostBuilder
 from cms.services.site_template import build_site_template
 from cms.utils import select_enum
 from cms.views.media_library_menu import MediaLibraryMenu
-from cms.views.menu import AbstractMenu, AppContext, MenuOptions
+from cms.views.menu import AbstractMenu, MenuOptions
+from cms.context import AppContext
 from cms.views.post_menu import PostMenu
 
 
@@ -61,14 +62,17 @@ class SiteMenu(AbstractMenu):
         SiteMenu.prompt_menu_option(options, display_title)
 
     def _create_site_post(self):
-        # singleton aqui tbm
-        pb = PostBuilder(self.selected_site, self.logged_user, AppContext().media_repo)
         try:
-            post = pb.build_post()
-        except ValueError:
-            print("\nCriação do Post não pode continuar sem uma linguagem. Clique Enter para voltar.")
-            return
-        else:
+            # Inicia o construtor de post (Builder)
+            builder = PostBuilder(self.selected_site, self.logged_user)
+
+            # Define as partes do post passo a passo
+            post = (builder.set_language()
+                           .set_title()
+                           .add_content_blocks()
+                           .set_schedule_date()
+                           .build()) # Constrói o objeto final
+
             context = AppContext()
             context.post_repo.add_post(post)
             context.analytics_repo.log(
@@ -76,9 +80,16 @@ class SiteMenu(AbstractMenu):
                     user=self.logged_user,
                     site=self.selected_site,
                     action=SiteAction.CREATE_POST,
+                    metadata={"post_id": str(post.id)}
                 )
             )
-            print("\nPost criado. Clique Enter para voltar ao menu.")
+            print("\nPost criado com sucesso. Clique Enter para voltar ao menu.")
+            input()
+
+        except ValueError as e:
+            print(f"\nErro na criação do post: {e}")
+            input("Clique Enter para voltar ao menu.")
+
 
     def _add_manager(self):
         print("Selecione um usuário para ser gerente da página:")

@@ -1,7 +1,11 @@
 from cms.models import Comment, Post, PostAction, PostAnalyticsEntry, Site, User
 from cms.services.post_translator import PostTranslator
 from cms.services.seo_analyzier import display_seo_report
-from cms.services.social_media import SocialMedia, build_social_media_post
+from cms.services.social_media import (
+    SocialMedia,
+    build_social_media_post,
+    get_social_media_poster,
+)
 from cms.utils import select_enum
 from cms.views.menu import AbstractMenu, AppContext, MenuOptions, clear_screen
 
@@ -11,7 +15,7 @@ class PostMenu(AbstractMenu):
     selected_site: Site
     selected_post: Post
 
-    # Construtor simplificado
+    # construtor simplificado
     def __init__(
         self,
         logged_user: User,
@@ -26,21 +30,26 @@ class PostMenu(AbstractMenu):
         self.selected_post_language = self.selected_post.default_language
 
         options: list[MenuOptions] = [
-            {"message": "Mostrar comentários do post", "function": self._show_post_comments},
+            {"message": "Mostrar comentários do post",
+                "function": self._show_post_comments},
             {"message": "Comentar no post", "function": self._comment_on_post},
-            {"message": "Trocar idioma do post", "function": self._change_post_language},
-            {"message": "Sugestão de estrutura para comparilhamento em redes sociais", "function": self._sharing_suggestion},
+            {"message": "Trocar idioma do post",
+                "function": self._change_post_language},
+            {"message": "Sugestão de estrutura para comparilhamento em redes sociais",
+                "function": self._sharing_suggestion},
         ]
-        
-        # Acessa repo de permissões via Singleton
+
+        # acessa repo de permissões via Singleton
         if AppContext().permission_repo.has_permission(
             self.logged_user, self.selected_site
         ):
             options.extend(
                 [
                     {"message": "Traduzir post", "function": self._translate_post},
-                    {"message": "Ver estatísticas do post", "function": self._show_post_analytics},
-                    {"message": "Ver relatório de análise de SEO", "function": self._show_seo_report},
+                    {"message": "Ver estatísticas do post",
+                        "function": self._show_post_analytics},
+                    {"message": "Ver relatório de análise de SEO",
+                        "function": self._show_seo_report},
                 ]
             )
 
@@ -50,7 +59,8 @@ class PostMenu(AbstractMenu):
         PostMenu.prompt_menu_option(options, display_title)
 
     def _show_post_comments(self):
-        post_comments: list[Comment] = AppContext().comment_repo.get_post_comments(self.selected_post)
+        post_comments: list[Comment] = AppContext(
+        ).comment_repo.get_post_comments(self.selected_post)
 
         for comment in post_comments:
             print(comment.body)
@@ -61,8 +71,9 @@ class PostMenu(AbstractMenu):
 
     def _comment_on_post(self):
         body = input("Digite seu comentário: ")
-        comment = Comment(post=self.selected_post, commenter=self.logged_user, body=body)
-        
+        comment = Comment(post=self.selected_post,
+                          commenter=self.logged_user, body=body)
+
         context = AppContext()
         context.comment_repo.add_comment(comment)
         context.analytics_repo.log(
@@ -79,7 +90,8 @@ class PostMenu(AbstractMenu):
         languages = self.selected_post.get_languages()
         if len(languages) == 1:
             clear_screen()
-            input(f"O Post só tem uma linguagem: {languages[0]}. Clique enter para voltar.")
+            input(
+                f"O Post só tem uma linguagem: {languages[0]}. Clique enter para voltar.")
             return
 
         # singleton!
@@ -94,7 +106,7 @@ class PostMenu(AbstractMenu):
         if len(languages) == 1:
             language = languages[0]
         else:
-            # choose language via language service singleton
+            # escolha a lingua (usando singleton)
             language = AppContext().lang_service.select_language(languages)
             if not language:
                 input(
@@ -119,9 +131,11 @@ class PostMenu(AbstractMenu):
         print(f"Idioma: {language}")
         print(f"Rede Social: {social_media}")
 
-        social_post = build_social_media_post(
-            social_media, self.selected_post, language
-        )
+        # pede para a fábrica a "máquina" correta
+        poster_factory = get_social_media_poster(social_media)
+        # manda a máquina criar o post
+        social_post = poster_factory.create_post(self.selected_post, language)
+
         social_post.display_sharing_suggestion()
 
         input("\nRecomendação finalizada. Clique Enter para voltar.")
@@ -148,7 +162,7 @@ class PostMenu(AbstractMenu):
         if len(languages) == 1:
             language = languages[0]
         else:
-            #singleton!
+            # singleton!
             language = AppContext().lang_service.select_language(languages)
             if not language:
                 return
