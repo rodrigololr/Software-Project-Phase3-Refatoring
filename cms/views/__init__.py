@@ -1,17 +1,13 @@
-import os
-
 from cms.models import User, UserRole
 from cms.views.logged_menu import LoggedMenu
-from cms.views.menu import AbstractMenu, AppContext, MenuOptions
+from cms.views.menu import AbstractMenu, AppContext, MenuOptions, clear_screen
 from cms.populate import populate
 
 
 class Menu(AbstractMenu):
-    context: AppContext
-
     def __init__(self):
-        self.context = AppContext()
-        populate(self.context)
+        # acesso a instância singleton diretamente e popula o dados
+        populate(AppContext())
 
     def show(self):
         try:
@@ -21,7 +17,7 @@ class Menu(AbstractMenu):
 
     def _main_menu(self):
         while True:
-            os.system("clear")
+            clear_screen()
             print("CMS\n")
 
             options: list[MenuOptions] = [
@@ -52,7 +48,7 @@ class Menu(AbstractMenu):
                 print("Opção inválida.\n")
                 continue
 
-            os.system("clear")
+            clear_screen()
             options[selected_option - 1]["function"]()
 
     def create_user(self):
@@ -62,8 +58,10 @@ class Menu(AbstractMenu):
         username = input("Digite um username: ")
         password = input("Digite uma senha: ")
 
-        user = User(first_name, last_name, email, username, password, UserRole.USER)
-        self.context.user_repo.add_user(user)
+        user = User(first_name, last_name, email,
+                    username, password, UserRole.USER)
+        # acessa o repositório de usuários através do Singleton
+        AppContext().user_repo.add_user(user)
 
         input("Usuário Criado! Clique Enter para voltar ao menu.")
 
@@ -73,11 +71,11 @@ class Menu(AbstractMenu):
             password = input("Senha: ")
 
             try:
-                user = self.context.user_repo.validate_user(username, password)
-                LoggedMenu(self.context, user).show()
+                # usa a instância Singleton para validar o usuário
+                user = AppContext().user_repo.validate_user(username, password)
+                # o construtor de LoggedMenu foi simplificado
+                LoggedMenu(user).show()
                 break
             except ValueError:
-                os.system("clear")
+                clear_screen()
                 print("Credenciais Inválidas!\n")
-
-        self.logged_user = user

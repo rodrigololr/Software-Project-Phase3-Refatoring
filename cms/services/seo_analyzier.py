@@ -1,5 +1,5 @@
-import os
 from cms.models import MediaBlock, Post, TextBlock, Language
+from cms.views.menu import clear_screen
 
 
 def display_seo_report(post: Post, language: Language):
@@ -28,7 +28,7 @@ def display_seo_report(post: Post, language: Language):
     top_keywords = sorted(keywords.items(), key=lambda x: x[1], reverse=True)[:5]
     repeated_words = [k for k, v in keywords.items() if v > 5]
 
-    os.system("clear")
+    clear_screen()
     print("Análise SEO do Post\n")
     print(f"Título: {title}")
     print(f"- Tamanho do título: {title_length} caracteres")

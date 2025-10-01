@@ -18,17 +18,14 @@ from cms.views.post_menu import PostMenu
 
 
 class SiteMenu(AbstractMenu):
-    context: AppContext
     logged_user: User
     selected_site: Site
 
     def __init__(
         self,
-        context: AppContext,
         logged_user: User,
         selected_site: Site,
     ):
-        self.context = context
         self.logged_user = logged_user
         self.selected_site = selected_site
 
@@ -36,116 +33,87 @@ class SiteMenu(AbstractMenu):
         options: list[MenuOptions] = [
             {"message": "Selecionar posts do site", "function": self._select_post},
         ]
-
-        if self.context.permission_repo.has_permission(
+        
+        # singleton!
+        if AppContext().permission_repo.has_permission(
             self.logged_user, self.selected_site
         ):
             options.extend(
                 [
-                    {
-                        "message": "Criar post no site",
-                        "function": self._create_site_post,
-                    },
-                    {
-                        "message": "Biblioteca de Mídias",
-                        "function": self._media_library_menu,
-                    },
-                    {
-                        "message": "Ver estatísticas do site",
-                        "function": self._show_site_analytics,
-                    },
-                    {
-                        "message": "Mudar template do site",
-                        "function": self._configure_site_template,
-                    },
+                    {"message": "Criar post no site", "function": self._create_site_post},
+                    {"message": "Biblioteca de Mídias", "function": self._media_library_menu},
+                    {"message": "Ver estatísticas do site", "function": self._show_site_analytics},
+                    {"message": "Mudar template do site", "function": self._configure_site_template},
                 ]
             )
 
             if self.logged_user.username == self.selected_site.owner.username:
-                options.extend(
-                    [
-                        {
-                            "message": "Adicionar Gerente",
-                            "function": self._add_manager,
-                        },
-                    ]
-                )
+                options.extend([{"message": "Adicionar Gerente", "function": self._add_manager}])
 
         def display_title():
             template = build_site_template(
                 site=self.selected_site,
-                post_repo=self.context.post_repo,
-                analytics_repo=self.context.analytics_repo,
+                post_repo=AppContext().post_repo, # singleton
+                analytics_repo=AppContext().analytics_repo, # singleton
             )
             template.display()
 
         SiteMenu.prompt_menu_option(options, display_title)
 
     def _create_site_post(self):
-        pb = PostBuilder(self.selected_site, self.logged_user, self.context.media_repo)
+        # singleton aqui tbm
+        pb = PostBuilder(self.selected_site, self.logged_user, AppContext().media_repo)
         try:
             post = pb.build_post()
         except ValueError:
-            print(" ")
-            input(
-                "Criação do Post não pode continuar sem uma linguagem. "
-                "Clique Enter para voltar ao menu."
-            )
+            print("\nCriação do Post não pode continuar sem uma linguagem. Clique Enter para voltar.")
             return
         else:
-            self.context.post_repo.add_post(post)
-            self.context.analytics_repo.log(
+            context = AppContext()
+            context.post_repo.add_post(post)
+            context.analytics_repo.log(
                 SiteAnalyticsEntry(
                     user=self.logged_user,
                     site=self.selected_site,
                     action=SiteAction.CREATE_POST,
                 )
             )
-
-            print(" ")
-            input("Post criado. Clique Enter para voltar ao menu.")
+            print("\nPost criado. Clique Enter para voltar ao menu.")
 
     def _add_manager(self):
         print("Selecione um usuário para ser gerente da página:")
-        users = self.context.permission_repo.get_not_managers(
-            self.selected_site, self.context.user_repo
+        
+        context = AppContext()
+        users = context.permission_repo.get_not_managers(
+            self.selected_site, context.user_repo
         )
         for i, user in enumerate(users):
             print(f"{i + 1}. {user.username} ({user.email})")
         print("0. Voltar")
 
-        selected_indexes = input(
-            "\nDigite os números separados por vírgula (ex: 1,3): "
-        ).split(",")
+        selected_indexes = input("\nDigite os números separados por vírgula (ex: 1,3): ").split(",")
 
         for idx in selected_indexes:
             idx = idx.strip()
-
             if not idx.isdigit():
                 continue
 
             n = int(idx)
-
             if n == 0:
                 return
-
-            if n < 0 or n > len(users):
-                print("Opção inválida.\n")
-                continue
 
             if 1 <= n <= len(users):
                 user = users[n - 1]
                 print(f"Permissão de gerência dada ao usuário {user.username}.")
-                self.context.permission_repo.grant_permission(
+                context.permission_repo.grant_permission(
                     Permission(user=user, site=self.selected_site)
                 )
 
-        print(" ")
-        input("Clique Enter para voltar ao menu.")
+        input("\nClique Enter para voltar ao menu.")
 
     def _show_site_analytics(self):
         site = self.selected_site
-        analytics_repo = self.context.analytics_repo
+        analytics_repo = AppContext().analytics_repo # singleton
 
         accesses = analytics_repo.get_site_accesses(site.id)
         post_creations = analytics_repo.get_site_post_creation_count(site.id)
@@ -160,32 +128,27 @@ class SiteMenu(AbstractMenu):
         print(f"Acessos ao site: {accesses}")
         print(f"Posts criados: {post_creations}")
         print(f"Uploads de mídia: {media_uploads}")
-        print(" ")
-        print("--- Interações com os Posts ---")
+        print("\n--- Interações com os Posts ---")
         print(f"Visualizações totais: {total_views}")
         print(f"Comentários totais: {total_comments}")
         print(f"Compartilhamentos totais: {total_shares}")
 
-        print(" ")
-        input("Clique Enter para voltar ao Menu.")
+        input("\nClique Enter para voltar ao Menu.")
 
     def _configure_site_template(self):
-        new_template = select_enum(
-            SiteTemplateType, "Escolha o layout de apresentação do site:"
-        )
+        new_template = select_enum(SiteTemplateType, "Escolha o layout de apresentação do site:")
         if new_template:
             self.selected_site.template = new_template
             print(f"Template atualizado para: {new_template.value}.", end=" ")
         else:
             print("Opção inválida.", end=" ")
-
         input("Clique enter para voltar ao menu.")
 
     def _select_post(self):
-        posts: list[Post] = self.context.post_repo.get_site_posts(self.selected_site)
+        posts: list[Post] = AppContext().post_repo.get_site_posts(self.selected_site)
 
         def execute_for_option(selected_post: Post):
-            self.context.analytics_repo.log(
+            AppContext().analytics_repo.log(
                 PostAnalyticsEntry(
                     user=self.logged_user,
                     site=self.selected_site,
@@ -193,16 +156,13 @@ class SiteMenu(AbstractMenu):
                     action=PostAction.VIEW,
                 )
             )
-            PostMenu(
-                self.context, self.logged_user, self.selected_site, selected_post
-            ).show()
+            # construtor simplificado
+            PostMenu(self.logged_user, self.selected_site, selected_post).show()
 
         SiteMenu.prompt_generic(
-            posts,
-            "Posts do site",
-            execute_for_option,
-            lambda m: m.get_default_title(),
+            posts, "Posts do site", execute_for_option, lambda m: m.get_default_title()
         )
 
     def _media_library_menu(self):
-        MediaLibraryMenu(self.context, self.logged_user, self.selected_site).show()
+        # construtor simplificado
+        MediaLibraryMenu(self.logged_user, self.selected_site).show()

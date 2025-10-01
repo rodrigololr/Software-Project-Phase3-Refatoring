@@ -277,3 +277,40 @@ def build_social_media_post(
         raise ValueError(f"Plataforma desconhecida: {platform}")
 
     return post_cls(original_post=post, language=language)
+
+class SocialMediaPoster(ABC):
+    """Interface da Fábrica (Creator)."""
+    @abstractmethod
+    def factory_method(self) -> Type[SocialMediaPost]:
+        pass
+
+    def create_post(self, post: Post, language: Language) -> SocialMediaPost:
+        product_class = self.factory_method()
+        return product_class(original_post=post, language=language)
+
+class FacebookPoster(SocialMediaPoster):
+    """Fábrica Concreta para o Facebook."""
+    def factory_method(self) -> Type[SocialMediaPost]:
+        return FacebookPost
+
+class InstagramPoster(SocialMediaPoster):
+    """Fábrica Concreta para o Instagram."""
+    def factory_method(self) -> Type[SocialMediaPost]:
+        return InstagramPost
+
+class TwitterPoster(SocialMediaPoster):
+    """Fábrica Concreta para o Twitter."""
+    def factory_method(self) -> Type[SocialMediaPost]:
+        return TwitterPost
+
+def get_social_media_poster(platform: SocialMedia) -> SocialMediaPoster:
+    """Função que seleciona a fábrica correta."""
+    factories = {
+        SocialMedia.FACEBOOK: FacebookPoster,
+        SocialMedia.INSTAGRAM: InstagramPoster,
+        SocialMedia.TWITTER: TwitterPoster,
+    }
+    factory_class = factories.get(platform)
+    if not factory_class:
+        raise ValueError(f"Plataforma desconhecida: {platform}")
+    return factory_class()

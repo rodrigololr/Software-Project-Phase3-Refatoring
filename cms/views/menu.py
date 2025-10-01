@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import os
+import threading
 from typing import Callable, TypeVar, TypedDict
 
 from cms.repository import (
@@ -20,6 +21,11 @@ MenuOptions = TypedDict(
 M = TypeVar("M")
 
 
+def clear_screen():
+    """Clear the terminal screen in a cross-platform way."""
+    os.system("cls" if os.name == "nt" else "clear")
+
+
 class AbstractMenu(ABC):
     @abstractmethod
     def show(self):
@@ -32,7 +38,7 @@ class AbstractMenu(ABC):
         cancel_option: str = "Voltar",
     ):
         while True:
-            os.system("clear")
+            clear_screen()
             display_title()
 
             for i, option in enumerate(options):
@@ -55,7 +61,7 @@ class AbstractMenu(ABC):
                 print("Opção inválida.\n")
                 continue
 
-            os.system("clear")
+            clear_screen()
             options[selected_option - 1]["function"]()
 
     @staticmethod
@@ -66,7 +72,7 @@ class AbstractMenu(ABC):
         option_text: Callable[[M], str],
     ):
         while True:
-            os.system("clear")
+            clear_screen()
 
             print(title)
             for i, item in enumerate(items):
@@ -94,16 +100,28 @@ class AbstractMenu(ABC):
             callback(selected_item)
 
 
+# aplicar o sigleton aqui, parece encaixar bem
 class AppContext:
-    def __init__(self):
-        self.__site_repo = SiteRepository()
-        self.__post_repo = PostRepository()
-        self.__user_repo = UserRepository()
-        self.__comment_repo = CommentRepository()
-        self.__media_repo = MediaRepository()
-        self.__analytics_repo = AnalyticsRepository()
-        self.__permission_repo = PermissionRepository()
-        self.__lang_service = LanguageService()
+    # singleton storage and lock for thread-safety
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls):
+        # double-checked locking
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    inst = super(AppContext, cls).__new__(cls)
+                    inst.__site_repo = SiteRepository()
+                    inst.__post_repo = PostRepository()
+                    inst.__user_repo = UserRepository()
+                    inst.__comment_repo = CommentRepository()
+                    inst.__media_repo = MediaRepository()
+                    inst.__analytics_repo = AnalyticsRepository()
+                    inst.__permission_repo = PermissionRepository()
+                    inst.__lang_service = LanguageService()
+                    cls._instance = inst
+        return cls._instance
 
     @property
     def site_repo(self) -> SiteRepository:
@@ -141,6 +159,8 @@ class AppContext:
         self.__site_repo = SiteRepository()
         self.__post_repo = PostRepository()
         self.__user_repo = UserRepository()
+        self.__media_repo = MediaRepository()
         self.__comment_repo = CommentRepository()
         self.__analytics_repo = AnalyticsRepository()
+        self.__permission_repo = PermissionRepository()
         self.__lang_service = LanguageService()

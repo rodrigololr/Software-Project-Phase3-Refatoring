@@ -1,14 +1,14 @@
-from cms.models import MediaFile, User
+# cms/views/media_detail_menu.py
+
+from cms.models import MediaFile
 from cms.views.menu import AbstractMenu, AppContext, MenuOptions
 
 
 class MediaMenu(AbstractMenu):
-    context: AppContext
-    logged_user: User
     selected_media: MediaFile
 
-    def __init__(self, context: AppContext, selected_media: MediaFile):
-        self.context = context
+    # construtor fica bastante simplificado, só precisa da mídia selecionada
+    def __init__(self, selected_media: MediaFile):
         self.selected_media = selected_media
 
     def show(self):
@@ -38,7 +38,8 @@ class MediaMenu(AbstractMenu):
             .lower()
         )
         if confirm == "y":
-            self.context.media_repo.remove_media(self.selected_media.id)
+            # singleton!
+            AppContext().media_repo.remove_media(self.selected_media.id)
             print("Mídia deletada.")
             input("Clique Enter para voltar ao menu.")
         else:

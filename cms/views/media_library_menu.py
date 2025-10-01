@@ -1,3 +1,5 @@
+# cms/views/media_library_menu.py
+
 from pathlib import Path
 from cms.models import MediaFile, Site, SiteAction, SiteAnalyticsEntry, User
 from cms.utils import infer_media_type
@@ -6,16 +8,17 @@ from cms.views.menu import AbstractMenu, AppContext, MenuOptions
 
 
 class MediaLibraryMenu(AbstractMenu):
-    context: AppContext
     logged_user: User
     selected_site: Site
 
-    def __init__(self, context: AppContext, logged_user: User, selected_site: Site):
-        self.context = context
+    def __init__(self, logged_user: User, selected_site: Site):
         self.logged_user = logged_user
         self.selected_site = selected_site
+        # keep a reference to the shared application context (singleton)
+        self.context = AppContext()
 
     def show(self):
+        # singleton!
         if not self.context.permission_repo.has_permission(
             self.logged_user, self.selected_site
         ):
@@ -28,7 +31,8 @@ class MediaLibraryMenu(AbstractMenu):
 
         MediaLibraryMenu.prompt_menu_option(
             options,
-            lambda: print(f"Biblioteca de mídias do site {self.selected_site.name}\n"),
+            lambda: print(
+                f"Biblioteca de mídias do site {self.selected_site.name}\n"),
         )
 
     def _import_media(self):
@@ -48,7 +52,6 @@ class MediaLibraryMenu(AbstractMenu):
             input("Clique Enter para voltar.")
             return
 
-        path = Path(filepath)
         filename = path.name
 
         try:
@@ -65,10 +68,11 @@ class MediaLibraryMenu(AbstractMenu):
                 duration=None,
             )
 
-            media_id = self.context.media_repo.add_midia(media)
+            context = AppContext()
+            media_id = context.media_repo.add_midia(media)
             print(f"Mídia importada com id {media_id}.")
 
-            self.context.analytics_repo.log(
+            context.analytics_repo.log(
                 SiteAnalyticsEntry(
                     user=self.logged_user,
                     site=self.selected_site,
@@ -82,7 +86,8 @@ class MediaLibraryMenu(AbstractMenu):
             input("Clique Enter para voltar ao menu e tentar novamente.")
 
     def _select_media(self):
-        medias: list[MediaFile] = self.context.media_repo.get_site_medias(
+        # singleton!
+        medias: list[MediaFile] = AppContext().media_repo.get_site_medias(
             self.selected_site
         )
 
@@ -92,7 +97,8 @@ class MediaLibraryMenu(AbstractMenu):
             return
 
         def execute_for_option(selected_media: MediaFile):
-            MediaMenu(self.context, selected_media).show()
+
+            MediaMenu(selected_media).show()
 
         MediaLibraryMenu.prompt_generic(
             medias,
