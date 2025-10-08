@@ -25,7 +25,8 @@ def display_seo_report(post: Post, language: Language):
             alt_texts.append(block.alt)
 
     title_length = len(title)
-    top_keywords = sorted(keywords.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_keywords = sorted(
+        keywords.items(), key=lambda x: x[1], reverse=True)[:5]
     repeated_words = [k for k, v in keywords.items() if v > 5]
 
     clear_screen()

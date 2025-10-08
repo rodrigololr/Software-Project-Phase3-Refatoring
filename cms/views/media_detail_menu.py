@@ -1,7 +1,8 @@
 # cms/views/media_detail_menu.py
 
 from cms.models import MediaFile
-from cms.views.menu import AbstractMenu, AppContext, MenuOptions
+from cms.views.menu import AbstractMenu, MenuOptions
+from cms.context import AppContext
 
 
 class MediaMenu(AbstractMenu):

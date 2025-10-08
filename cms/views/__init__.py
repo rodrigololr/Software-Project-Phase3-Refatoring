@@ -1,6 +1,7 @@
 from cms.models import User, UserRole
 from cms.views.logged_menu import LoggedMenu
-from cms.views.menu import AbstractMenu, AppContext, MenuOptions, clear_screen
+from cms.views.menu import AbstractMenu, MenuOptions, clear_screen
+from cms.context import AppContext
 from cms.populate import populate
 
 

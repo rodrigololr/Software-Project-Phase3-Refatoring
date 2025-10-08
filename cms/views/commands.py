@@ -11,9 +11,12 @@ class Command(ABC):
     def __init__(self, description: str):
         self.description = description
 
+    @abstractmethod
+    def execute(self):
+        pass
+
 class ShowProfileCommand(Command):
     """Comando para exibir o perfil do usuário."""
-    
     def __init__(self, user: User, description: str):
         super().__init__(description)
         self.user = user
@@ -26,7 +29,6 @@ class ShowProfileCommand(Command):
 
 class CreateSiteCommand(Command):
     """Comando para criar um novo site."""
-    
     def __init__(self, user: User, description: str):
         super().__init__(description)
         self.user = user
@@ -53,12 +55,11 @@ class SelectSiteCommand(Command):
         sites: list[Site] = AppContext().site_repo.get_sites()
 
         def execute_for_option(selected_site: Site):
-            AppContext().analytics_repo.log(
-                SiteAnalyticsEntry(
-                    user=self.user,
-                    site=selected_site,
-                    action=SiteAction.ACCESS,
-                )
+            # AQUI: Dispara o evento em vez de logar diretamente
+            AppContext().event_manager.notify(
+                "SITE_ACCESSED",
+                user=self.user,
+                site=selected_site
             )
             SiteMenu(self.user, selected_site).show()
 

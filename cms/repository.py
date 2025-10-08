@@ -14,6 +14,7 @@ from cms.models import (
     SiteAnalyticsEntry,
     User,
 )
+from cms.events import Observer
 
 
 class UserRepository:
@@ -52,13 +53,49 @@ class UserRepository:
         self.__users.pop(user_id)
 
 
-class AnalyticsRepository:
+class AnalyticsRepository(Observer):
     __entries: dict[int, AnalyticsEntry]
     __id_counter: Iterator[int]
 
     def __init__(self):
         self.__entries = {}
         self.__id_counter = count(1)
+
+    def update(self, event_type: str, *args, **kwargs) -> None:
+        # define como a interface do observador deve ser
+        user = kwargs.get('user')
+        site = kwargs.get('site')
+
+        entry = None
+        if(event_type == "SITE_ACCESSED"):
+            # log de acesso ao site
+            entry = SiteAnalyticsEntry(
+                user=user,
+                site=site,
+                action=SiteAction.ACCESS
+            )
+        elif(event_type == "POST_VIEWED"):
+            # log de visualização de post
+            post = kwargs.get('post')
+            entry = PostAnalyticsEntry(
+                user=user,
+                site=site,
+                post=post,
+                action=PostAction.VIEW
+            )
+        elif(event_type == "POST_COMMENTED"):
+            # log de comentário em post
+            post = kwargs.get('post')
+            entry = PostAnalyticsEntry(
+                user=user,
+                site=site,
+                post=post,
+                action=PostAction.COMMENT,
+                metadata={"comment_id": str(comment_id)}
+            )
+
+        if(entry):
+            self.log(entry)
 
     def log(self, entry: AnalyticsEntry) -> int:
         entry_id = next(self.__id_counter)

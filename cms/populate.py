@@ -16,7 +16,7 @@ from cms.models import (
     UserRole,
 )
 from cms.utils import infer_media_type
-from cms.views.menu import AppContext
+from cms.context import AppContext
 
 
 def populate(context: AppContext):

@@ -4,7 +4,8 @@ from pathlib import Path
 from cms.models import MediaFile, Site, SiteAction, SiteAnalyticsEntry, User
 from cms.utils import infer_media_type
 from cms.views.media_detail_menu import MediaMenu
-from cms.views.menu import AbstractMenu, AppContext, MenuOptions
+from cms.views.menu import AbstractMenu, MenuOptions
+from cms.context import AppContext
 
 
 class MediaLibraryMenu(AbstractMenu):

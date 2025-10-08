@@ -61,3 +61,8 @@ python main.py
 
 * **O que é?**: O padrão Command transforma uma solicitação em um objeto autônomo que contém todas as informações sobre a solicitação. Isso permite parametrizar clientes com diferentes solicitações, enfileirar ou registrar solicitações e suportar operações que podem ser desfeitas.
 * **Aplicação no Projeto**: O padrão foi usado para refatorar o sistema de menus implementei no `LoggedMenu`. Em vez de o menu chamar diretamente as funções, cada opção do menu é agora um objeto **Comando**. O menu simplesmente mantém uma lista desses comandos e executa o que for selecionado pelo usuário. Isso desacopla o menu da lógica das ações, tornando o sistema mais extensível e organizado.
+
+
+### 3. Observer (Observador)
+* **O que é?**: O padrão Observer define uma dependência um-para-muitos entre objetos, de modo que quando um objeto muda de estado, todos os seus dependentes são notificados e atualizados automaticamente.
+* **Aplicação no Projeto**: Este padrão foi implementado no sistema de agendamento de posts (`cms/services/scheduler.py`). O `PostScheduler` atua como o **sujeito** que mantém uma lista de posts agendados. Quando a hora de publicação chega, ele notifica todos os posts agendados, que então se publicam automaticamente. Isso permite que o sistema gerencie a publicação de posts sem intervenção manual, garantindo que o conteúdo seja publicado no momento correto.
