@@ -5,6 +5,13 @@ from cms.models import MediaBlock, Post, Site, SiteTemplateType
 from cms.repository import PostRepository, AnalyticsRepository
 
 
+#strategy (padrão de projeto comportamental)
+# é possivel explicar da seguinte forma:
+# as estrategias são classes que implementam uma interface comum (SiteTemplate)
+# cada classe implementa um algoritmo diferente (select_posts)
+# o contexto (a função display_title no SiteMenu) recebe uma instancia da interface (SiteTemplate)
+# e chama o método da interface (template.display())
+# so esclarecendo uma duvida minha, o build_site_template é uma factory que cria a instancia correta da estrategia
 @dataclass
 class SiteTemplate(ABC):
     site: Site
