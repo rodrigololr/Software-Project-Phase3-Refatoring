@@ -60,4 +60,4 @@ python main.py
 #### 2. Command (Comando)
 
 * **O que é?**: O padrão Command transforma uma solicitação em um objeto autônomo que contém todas as informações sobre a solicitação. Isso permite parametrizar clientes com diferentes solicitações, enfileirar ou registrar solicitações e suportar operações que podem ser desfeitas.
-* **Aplicação no Projeto**: O padrão foi usado para refatorar o sistema de menus (como o `LoggedMenu`). Em vez de o menu chamar diretamente as funções, cada opção do menu é agora um objeto **Comando** (ex: `CreateSiteCommand`). O menu simplesmente mantém uma lista desses comandos e executa o que for selecionado pelo usuário. Isso desacopla o menu da lógica das ações, tornando o sistema mais extensível e organizado.
+* **Aplicação no Projeto**: O padrão foi usado para refatorar o sistema de menus implementei no `LoggedMenu`. Em vez de o menu chamar diretamente as funções, cada opção do menu é agora um objeto **Comando**. O menu simplesmente mantém uma lista desses comandos e executa o que for selecionado pelo usuário. Isso desacopla o menu da lógica das ações, tornando o sistema mais extensível e organizado.
