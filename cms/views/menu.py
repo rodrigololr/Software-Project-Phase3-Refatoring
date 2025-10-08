@@ -22,7 +22,6 @@ M = TypeVar("M")
 
 
 def clear_screen():
-    """Clear the terminal screen in a cross-platform way."""
     os.system("cls" if os.name == "nt" else "clear")
 
 
@@ -102,7 +101,6 @@ class AbstractMenu(ABC):
 
 # aplicar o sigleton aqui, parece encaixar bem
 class AppContext:
-    # singleton storage and lock for thread-safety
     _instance = None
     _lock = threading.Lock()
 

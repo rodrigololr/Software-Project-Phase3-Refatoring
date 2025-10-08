@@ -18,8 +18,7 @@ from cms.context import AppContext
 
 class PostBuilder:
     """
-    Implementação do padrão Builder para construir um objeto Post passo a passo.
-    Cada método de construção retorna 'self' para permitir o encadeamento de chamadas.
+    implementação do padrão builder para construir um objeto post passo a passo
     """
     def __init__(self, site: Site, poster: User):
         self.__site = site
@@ -31,7 +30,7 @@ class PostBuilder:
 
     def reset(self):
         """
-        Reseta o estado do builder para permitir a construção de um novo post
+        reseta o estado do builder para permitir a construção de um novo post
         sem interferência do anterior.
         """
         self.__language: Language | None = None

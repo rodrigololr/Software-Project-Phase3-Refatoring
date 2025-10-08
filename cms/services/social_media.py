@@ -275,19 +275,18 @@ def build_social_media_post(
     post: Post,
     language: Language,
 ) -> SocialMediaPost:
-    """constroi um SocialMediaPost usando o Factory Method
-
+    """constroi um socialmediapost usando o factory method
     em vez de pegar diretamente para a classe concreta, delegamos a
-    responsabilidade para a factory apropriada (SocialMediaPoster)
+    responsabilidade para a factory apropriada
     isso mantem a compatibility com a assinatura existente enquanto
-    aplica o padrão Factory method
+    aplica o padrão factory method
     """
     poster = get_social_media_poster(platform)
     return poster.create_post(post, language)
 
 
 class SocialMediaPoster(ABC):
-    """Interface da Fábrica (Creator)."""
+    """interface da fábrica (Creator)."""
     @abstractmethod
     def factory_method(self) -> Type[SocialMediaPost]:
         pass
@@ -298,21 +297,21 @@ class SocialMediaPoster(ABC):
 
 
 class FacebookPoster(SocialMediaPoster):
-    """Fábrica Concreta para o Facebook."""
+    """fabrica Concreta para o Facebook."""
 
     def factory_method(self) -> Type[SocialMediaPost]:
         return FacebookPost
 
 
 class InstagramPoster(SocialMediaPoster):
-    """Fábrica Concreta para o Instagram."""
+    """fabrica Concreta para o Instagram."""
 
     def factory_method(self) -> Type[SocialMediaPost]:
         return InstagramPost
 
 
 class TwitterPoster(SocialMediaPoster):
-    """Fábrica Concreta para o Twitter."""
+    """fabrica Concreta para o Twitter."""
 
     def factory_method(self) -> Type[SocialMediaPost]:
         return TwitterPost

@@ -131,7 +131,7 @@ class PostMenu(AbstractMenu):
         print(f"Idioma: {language}")
         print(f"Rede Social: {social_media}")
 
-        # pede para a fábrica a "máquina" correta
+        # pede para a fábrica a "máquina" correta (factory)
         poster_factory = get_social_media_poster(social_media)
         # manda a máquina criar o post
         social_post = poster_factory.create_post(self.selected_post, language)

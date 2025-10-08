@@ -63,15 +63,15 @@ class SiteMenu(AbstractMenu):
 
     def _create_site_post(self):
         try:
-            # Inicia o construtor de post (Builder)
+            # inicia o construtor de post (Builder)
             builder = PostBuilder(self.selected_site, self.logged_user)
 
-            # Define as partes do post passo a passo
+            # define as partes do post passo a passo  (diretor)
             post = (builder.set_language()
                            .set_title()
                            .add_content_blocks()
                            .set_schedule_date()
-                           .build()) # Constrói o objeto final
+                           .build()) # constrói o objeto final
 
             context = AppContext()
             context.post_repo.add_post(post)
