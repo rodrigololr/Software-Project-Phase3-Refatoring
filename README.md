@@ -48,3 +48,16 @@ python main.py
 - **InstagramPost** Represents the Post formatted to be Posted in Instagram. 
 - **TwitterPost** Represents the Post formatted to be Posted in Instagram. 
 
+
+## Padrões de Projeto Comportamentais
+
+
+#### 1. Strategy (Estratégia)
+
+* **O que é?**: é um padrão de projeto comportamental que permite que você defina uma família de algoritmos, coloque-os em classes separadas, e faça os objetos deles intercambiáveis.
+* **Aplicação no Projeto**: Este padrão é utilizado no sistema de templates de site (`cms/services/site_template.py`). Cada classe de template (`LatestPostsTemplate`, `TopPostsFirstTemplate`, ...) é uma **estratégia** diferente para selecionar e ordenar os posts que serão exibidos. O `SiteMenu` utiliza a estratégia que está configurada no objeto `Site`, podendo trocá-la a qualquer momento, alterando dinamicamente como o conteúdo é apresentado.
+
+#### 2. Command (Comando)
+
+* **O que é?**: O padrão Command transforma uma solicitação em um objeto autônomo que contém todas as informações sobre a solicitação. Isso permite parametrizar clientes com diferentes solicitações, enfileirar ou registrar solicitações e suportar operações que podem ser desfeitas.
+* **Aplicação no Projeto**: O padrão foi usado para refatorar o sistema de menus (como o `LoggedMenu`). Em vez de o menu chamar diretamente as funções, cada opção do menu é agora um objeto **Comando** (ex: `CreateSiteCommand`). O menu simplesmente mantém uma lista desses comandos e executa o que for selecionado pelo usuário. Isso desacopla o menu da lógica das ações, tornando o sistema mais extensível e organizado.
