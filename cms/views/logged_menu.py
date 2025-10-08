@@ -1,108 +1,63 @@
-from cms.models import (
-    Permission,
-    Site,
-    SiteAction,
-    SiteAnalyticsEntry,
-    User,
-    UserRole,
-)
-from cms.views.menu import AbstractMenu, AppContext, MenuOptions, clear_screen
-from cms.views.site_menu import SiteMenu
+import os
+from cms.models import User, UserRole
+from cms.views.menu import AbstractMenu
 
+# PADRÃO COMMAND: Importação das classes do padrão
+# - Command: Interface base que define o método execute()
+# - Comandos específicos: Cada ação do menu encapsulada em uma classe própria
+from .commands import (
+    Command,
+    ShowProfileCommand,
+    CreateSiteCommand,
+    SelectSiteCommand,
+    ShowUserSitesCommand,
+    ShowLogsCommand
+)
 
 class LoggedMenu(AbstractMenu):
     logged_user: User
 
-    # construtor simplificado: não precisa mais do context!!!!!!!
     def __init__(self, logged_user: User):
         self.logged_user = logged_user
-
-    def show(self):
-        options: list[MenuOptions] = [
-            {"message": "Exibir dados de perfil", "function": self.show_profile},
-            {"message": "Criar um site", "function": self.create_site},
-            {"message": "Selecionar um site", "function": self.select_site},
-            {"message": "Listar sites do usuário", "function": self.show_user_sites},
+        
+        # PADRÃO COMMAND: Lista de comandos ao invés de funções
+        # Cada opção do menu é agora um objeto Command que encapsula:
+        # - A ação a ser executada (método execute())
+        # - Os dados necessários (passados no construtor)
+        # - A descrição da ação (atributo description)
+        self.options: list[Command] = [
+            ShowProfileCommand(self.logged_user, "Exibir dados de perfil"),
+            CreateSiteCommand(self.logged_user, "Criar um site"),
+            SelectSiteCommand(self.logged_user, "Selecionar um site"),
+            ShowUserSitesCommand(self.logged_user, "Listar sites do usuário"),
         ]
 
+        # PADRÃO COMMAND: Adição condicional de comando baseado em permissão
+        # Comandos podem ser adicionados dinamicamente à lista
         if self.logged_user.role == UserRole.ADMIN:
-            options.extend(
-                [
-                    {"message": "Ver logs do sistema", "function": self.show_logs},
-                ]
-            )
+            self.options.append(ShowLogsCommand("Ver logs do sistema"))
 
-        LoggedMenu.prompt_menu_option(
-            options,
-            lambda: print(f"CMS\nBem vindo, {self.logged_user.first_name}!\n"),
-            "Fazer logout",
-        )
+    def show(self):
+        while True:
+            os.system('clear' if os.name == 'posix' else 'cls')
+            print(f"CMS\nBem vindo, {self.logged_user.first_name}!\n")
 
-    def show_logs(self):
-        try:
-            clear_screen()
-            limit = int(
-                input("Insira a quantidade de logs que deseja ver (ou 0 para voltar): ")
-            )
+            for i, command in enumerate(self.options):
+                print(f"{i + 1}. {command.description}")
+            print("0. Fazer logout")
+            
+            try:
+                selected_index = int(input("\nDigite o número da opção para selecioná-la: "))
+                if selected_index == 0:
+                    break
+                
+                # PADRÃO COMMAND: Execução do comando selecionado
+                # O menu não precisa saber os detalhes de como a ação é executada
+                # Apenas chama execute() e o comando faz o resto
+                # Isso promove baixo acoplamento e alta coesão
+                command_to_execute = self.options[selected_index - 1]
+                command_to_execute.execute()
 
-            if limit == 0:
-                return
-
-            # acessa o analytics_repo de forma simples através da instância Singleton (appcontext)
-            AppContext().analytics_repo.show_logs(limit=limit)
-
-        except ValueError:
-            print("Valor inválido.")
-
-        print(" ")
-        input("Clique Enter para voltar ao menu.")
-
-    def show_profile(self):
-        print(f"Nome: {self.logged_user.first_name} {self.logged_user.last_name}")
-        print(f"E-mail: {self.logged_user.email}")
-        print(f"Role: {self.logged_user.role}")
-
-        print(" ")
-        input("Clique Enter para voltar ao Menu.")
-
-    def create_site(self):
-        site_name = input("Diga o nome do seu site: ")
-        description = input("Informe uma descrição breve para o site: ")
-        site = Site(owner=self.logged_user, name=site_name, description=description)
-        
-        # usa o Singleton para acessar os repositórios
-        context = AppContext()
-        context.site_repo.add_site(site)
-        permission = Permission(user=self.logged_user, site=site)
-        context.permission_repo.grant_permission(permission)
-
-        input("Site criado. Clique Enter para voltar ao menu.")
-
-    def select_site(self):
-        sites: list[Site] = AppContext().site_repo.get_sites()
-
-        def execute_for_option(selected_site: Site):
-            AppContext().analytics_repo.log(
-                SiteAnalyticsEntry(
-                    user=self.logged_user,
-                    site=selected_site,
-                    action=SiteAction.ACCESS,
-                )
-            )
-            # chama o próximo menu com o construtor simplificado, antes tinha context agora nn precisa mais
-            SiteMenu(self.logged_user, selected_site).show()
-
-        LoggedMenu.prompt_generic(
-            sites, "Sites disponíveis", execute_for_option, lambda m: m.name
-        )
-
-    def show_user_sites(self):
-        if not self.logged_user:
-            return
-        # aqui tbm é aplicado singleton, para acessar o repositório de sites
-        user_sites: list[Site] = AppContext().site_repo.get_user_sites(self.logged_user)
-        for i, site in enumerate(user_sites):
-            print(f"{i + 1}. {site.name}")
-
-        print(" ")
-        input("Clique Enter para voltar ao Menu.")
+            except (ValueError, IndexError):
+                print("Opção inválida.")
+                input("Clique Enter para tentar novamente.")
