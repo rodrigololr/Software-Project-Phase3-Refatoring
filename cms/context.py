@@ -14,6 +14,7 @@ from cms.repository import (
 )
 from cms.services.languages import LanguageService
 from cms.events import EventManager
+from cms.services.analytics_proxy import AnalyticsRepositoryProxy
 
 
 
@@ -87,6 +88,13 @@ class AppContext:
     @property
     def lang_service(self) -> LanguageService:
         return self.__lang_service
+
+    def get_protected_analytics(self, user) -> AnalyticsRepositoryProxy:
+        return AnalyticsRepositoryProxy(
+            self.__analytics_repo,
+            user,
+            self.__permission_repo
+        )
 
     def reset_context(self):
         self.__event_manager = EventManager()
