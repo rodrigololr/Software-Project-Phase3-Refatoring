@@ -89,8 +89,13 @@ python main.py
 
 #### 1. Proxy (Procurador)
 
-* **O que é?**: O padrão Proxy fornece um objeto substituto ou marcador de posição para outro objeto. Um proxy controla o acesso ao objeto real, permitindo adicionar lógica antes ou depois de delegação.
-* **Aplicação no Projeto**: Este padrão foi implementado em `cms/services/analytics_proxy.py` com a classe `AnalyticsRepositoryProxy`. O proxy atua como intermediário entre as views/menu e o `AnalyticsRepository` real, verificando permissões antes de permitir acesso aos dados. ADMINs podem acessar analytics de qualquer site, enquanto USERs só podem acessar dados de sites nos quais têm permissão. Operações como `show_logs()` (visão geral do sistema) são restritas apenas a ADMINs. Se um acesso não autorizado for tentado, o proxy lança uma `PermissionError`, protegendo dados sensíveis.
+* **O que é?**: O padrão Proxy fornece um objeto substituto ou marcador de posição para outro objeto. Um proxy controla o acesso ao objeto real, permitindo adicionar lógica antes ou depois de delegação (validação, cache, logging, etc).
+* **Aplicação no Projeto**: Este padrão foi implementado em `cms/services/analytics_proxy.py` com a classe `AnalyticsRepositoryProxy`. O proxy atua como intermediário entre as views/menus e o `AnalyticsRepository` real, verificando permissões antes de permitir acesso aos dados. ADMINs podem acessar analytics de qualquer site, enquanto USERs só podem acessar dados de sites nos quais têm permissão. Operações como `show_logs()` (visão geral do sistema) são restritas apenas a ADMINs. Se um acesso não autorizado for tentado, o proxy lança uma `PermissionError`, protegendo dados sensíveis.
+
+#### 2. Facade (Fachada)
+
+* **O que é?**: O padrão Facade fornece uma interface unificada e simplificada para um conjunto de interfaces mais complexas em um subsistema. Reduz a complexidade expondo apenas o essencial.
+* **Aplicação no Projeto**: Este padrão foi implementado em `cms/services/post_management_facade.py` com a classe `PostManagementFacade`. A fachada encapsula o fluxo completo de criação de posts: construção via `PostBuilder`, registro no repositório e logging automático em analytics. Em vez de `SiteMenu` chamar múltiplos serviços diretamente, ele simplesmente chama `facade.create_and_register_post(site, user)`, tornando o código mais limpo e legível.
 
 
 
