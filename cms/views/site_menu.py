@@ -9,7 +9,7 @@ from cms.models import (
     SiteTemplateType,
     User,
 )
-from cms.services.post_builder import PostBuilder
+from cms.services.post_management_facade import PostManagementFacade
 from cms.services.site_template import build_site_template
 from cms.utils import select_enum
 from cms.views.media_library_menu import MediaLibraryMenu
@@ -63,26 +63,8 @@ class SiteMenu(AbstractMenu):
 
     def _create_site_post(self):
         try:
-            # inicia o construtor de post (Builder)
-            builder = PostBuilder(self.selected_site, self.logged_user)
-
-            # define as partes do post passo a passo  (diretor)
-            post = (builder.set_language()
-                           .set_title()
-                           .add_content_blocks()
-                           .set_schedule_date()
-                           .build()) # constrói o objeto final
-
-            context = AppContext()
-            context.post_repo.add_post(post)
-            context.analytics_repo.log(
-                SiteAnalyticsEntry(
-                    user=self.logged_user,
-                    site=self.selected_site,
-                    action=SiteAction.CREATE_POST,
-                    metadata={"post_id": str(post.id)}
-                )
-            )
+            facade = PostManagementFacade(AppContext())
+            post = facade.create_and_register_post(self.selected_site, self.logged_user)
             print("\nPost criado com sucesso. Clique Enter para voltar ao menu.")
             input()
 
