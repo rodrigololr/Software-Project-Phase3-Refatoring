@@ -66,3 +66,31 @@ python main.py
 ### 3. Observer (Observador)
 * **O que é?**: O padrão Observer define uma dependência um-para-muitos entre objetos, de modo que quando um objeto muda de estado, todos os seus dependentes são notificados e atualizados automaticamente.
 * **Aplicação no Projeto**: Este padrão foi implementado para desacoplar o sistema de `Analytics` do restante da aplicação. Antes, os menus e comandos precisavam chamar diretamente o `analytics_repo.log()` para registrar uma ação. Agora, eles apenas disparam um evento `(ex: "POST_VIEWED")`. O `AnalyticsRepository`` atua como um Observador, que "escuta" esses eventos e reage criando o log correspondente. Dessa forma, os menus não precisam saber que o sistema de analytics existe, tornando o código mais flexível e fácil de manter.
+
+
+## Padrões de Projeto Criacionais
+
+#### 1. Factory Method (Método de Fábrica)
+
+* **O que é?**: O padrão Factory Method define uma interface para criar um objeto, mas deixa as subclasses decidirem qual classe instanciar. Isso permite adiar a instanciação para subclasses.
+* **Aplicação no Projeto**: Este padrão foi implementado no sistema de redes sociais (`cms/services/social_media.py`). A classe abstrata `SocialMediaPoster` atua como o creator, enquanto subclasses concretas como `FacebookPoster`, `InstagramPoster` e `TwitterPoster` implementam o método `factory_method()` que retorna a classe de post apropriada (`FacebookPost`, `InstagramPost`, `TwitterPost`). Isso permite que novos tipos de redes sociais sejam adicionados sem modificar o código existente, apenas criando novas subclasses de `SocialMediaPoster`.
+
+#### 2. Singleton (Instância Única)
+
+* **O que é?**: O padrão Singleton garante que uma classe tenha apenas uma instância e fornece um ponto global de acesso a essa instância.
+* **Aplicação no Projeto**: O padrão Singleton foi implementado no `AnalyticsRepository` para garantir que haja apenas uma instância desse repositório em toda a aplicação. Isso é importante porque o `AnalyticsRepository` é responsável por coletar e armazenar dados analíticos, e ter múltiplas instâncias poderia levar a inconsistências nos dados.
+
+#### 3. Builder (Construtor)
+* **O que é?**: O padrão Builder separa a construção de um objeto complexo da sua representação, permitindo que o mesmo processo de construção crie diferentes representações.
+* **Aplicação no Projeto**: Este padrão foi aplicado na criação de objetos `Post` no `PostRepository`. O `PostBuilder` permite construir um `Post` passo a passo, configurando diferentes atributos como título, conteúdo, mídia associada, etc. Isso facilita a criação de posts complexos e melhora a legibilidade do código, especialmente quando há muitos atributos opcionais.
+
+
+## Padrões de Projeto Estruturais
+
+#### 1. Proxy (Procurador)
+
+* **O que é?**: O padrão Proxy fornece um objeto substituto ou marcador de posição para outro objeto. Um proxy controla o acesso ao objeto real, permitindo adicionar lógica antes ou depois de delegação.
+* **Aplicação no Projeto**: Este padrão foi implementado em `cms/services/analytics_proxy.py` com a classe `AnalyticsRepositoryProxy`. O proxy atua como intermediário entre as views/menu e o `AnalyticsRepository` real, verificando permissões antes de permitir acesso aos dados. ADMINs podem acessar analytics de qualquer site, enquanto USERs só podem acessar dados de sites nos quais têm permissão. Operações como `show_logs()` (visão geral do sistema) são restritas apenas a ADMINs. Se um acesso não autorizado for tentado, o proxy lança uma `PermissionError`, protegendo dados sensíveis.
+
+
+
