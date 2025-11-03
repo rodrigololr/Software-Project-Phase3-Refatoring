@@ -15,7 +15,7 @@ class MediaType(Enum):
     IMAGE = 1
     VIDEO = 2
 
-
+# Strategy
 class SiteTemplateType(Enum):
     TOP_POSTS_FIRST = "Posts mais vistos"
     TOP_COMMENTS_FIRST = "Posts mais comentados"

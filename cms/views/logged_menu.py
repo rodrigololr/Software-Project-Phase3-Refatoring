@@ -42,6 +42,7 @@ class LoggedMenu(AbstractMenu):
             os.system('clear' if os.name == 'posix' else 'cls')
             print(f"CMS\nBem vindo, {self.logged_user.first_name}!\n")
 
+            # executando os comandos disponíveis
             for i, command in enumerate(self.options):
                 print(f"{i + 1}. {command.description}")
             print("0. Fazer logout")

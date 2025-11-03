@@ -28,6 +28,7 @@ class AnalyticsRepositoryProxy(AnalyticsRepository):
                     f"Acesso negado: você não tem permissão para ver analytics do site {site.id}"
                 )
 
+    # abaixo são todos os métodos do AnalyticsRepository com verificação de permissão
     def get_site_accesses(self, site_id: int) -> int:
         self._check_access_to_site(site_id)
         return self.__real_repo.get_site_accesses(site_id)

@@ -6,6 +6,7 @@ from cms.utils import infer_media_type
 from cms.views.media_detail_menu import MediaMenu
 from cms.views.menu import AbstractMenu, MenuOptions
 from cms.context import AppContext
+from cms.exceptions import ValidationError, MediaError, ResourceNotFoundError
 
 
 class MediaLibraryMenu(AbstractMenu):
@@ -37,26 +38,29 @@ class MediaLibraryMenu(AbstractMenu):
         )
 
     def _import_media(self):
-        filepath = input(
-            "Digite o caminho completo do arquivo de mídia a ser importado:\n> "
-        ).strip()
-
-        if not filepath:
-            print("Nenhum caminho informado.")
-            input("Clique Enter para voltar.")
-            return
-
-        path = Path(filepath)
-
-        if not path.exists():
-            print("Arquivo não encontrado. Verifique o caminho digitado.")
-            input("Clique Enter para voltar.")
-            return
-
-        filename = path.name
-
         try:
-            media_type = infer_media_type(path.suffix)
+            filepath = input(
+                "Digite o caminho completo do arquivo de mídia a ser importado:\n> "
+            ).strip()
+
+            if not filepath:
+                print("Nenhum caminho informado.")
+                input("Clique Enter para voltar.")
+                return
+
+            path = Path(filepath)
+
+            if not path.exists():
+                raise ValidationError("Arquivo não encontrado. Verifique o caminho digitado.")
+
+            filename = path.name
+
+            try:
+                media_type = infer_media_type(path.suffix)
+            except (ValidationError, MediaError) as e:
+                print(f"Erro: {e}")
+                input("Clique Enter para voltar.")
+                return
 
             media = MediaFile(
                 uploader=self.logged_user,
@@ -82,28 +86,40 @@ class MediaLibraryMenu(AbstractMenu):
             )
 
             input("Clique Enter para voltar ao menu.")
-        except ValueError:
-            print("Arquivo não suportado.")
-            input("Clique Enter para voltar ao menu e tentar novamente.")
+            
+        except ValidationError as e:
+            print(f"Erro de validação: {e}")
+            input("Clique Enter para voltar.")
+        except Exception as e:
+            print(f"Erro ao importar mídia: {str(e)}")
+            input("Clique Enter para voltar.")
 
     def _select_media(self):
-        # singleton!
-        medias: list[MediaFile] = AppContext().media_repo.get_site_medias(
-            self.selected_site
-        )
+        try:
+            # singleton!
+            medias: list[MediaFile] = AppContext().media_repo.get_site_medias(
+                self.selected_site
+            )
 
-        if not medias:
-            print("Nenhuma mídia encontrada para este site.")
-            input("Clique Enter para voltar ao menu.")
-            return
+            if not medias:
+                print("Nenhuma mídia encontrada para este site.")
+                input("Clique Enter para voltar ao menu.")
+                return
 
-        def execute_for_option(selected_media: MediaFile):
+            def execute_for_option(selected_media: MediaFile):
+                try:
+                    MediaMenu(selected_media).show()
+                except Exception as e:
+                    print(f"Erro ao abrir mídia: {str(e)}")
+                    input("Clique Enter para voltar.")
 
-            MediaMenu(selected_media).show()
-
-        MediaLibraryMenu.prompt_generic(
-            medias,
-            f"Mídias do site {self.selected_site.name}\n",
-            execute_for_option,
-            lambda m: m.filename,
-        )
+            MediaLibraryMenu.prompt_generic(
+                medias,
+                f"Mídias do site {self.selected_site.name}\n",
+                execute_for_option,
+                lambda m: m.filename,
+            )
+            
+        except Exception as e:
+            print(f"Erro ao listar mídias: {str(e)}")
+            input("Clique Enter para voltar.")

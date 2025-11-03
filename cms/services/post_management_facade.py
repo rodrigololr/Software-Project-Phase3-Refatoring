@@ -5,14 +5,14 @@ from cms.context import AppContext
 
 
 class PostManagementFacade:
-    """Fachada que simplifica a criação e registro de posts."""
+    """fachada que simplifica a criação e registro de posts."""
 
     def __init__(self, context: AppContext, notification_adapter: NotificationAdapter = None):
         self.__context = context
         self.__notification_adapter = notification_adapter or ConsoleNotificationAdapter()
 
     def create_and_register_post(self, site: Site, user: User) -> Post:
-        """Encapsula todo o fluxo: construir + salvar + logar analytics + notificar."""
+        """encapsula todo o fluxo: construir + salvar + logar analytics + notificar."""
         
         builder = PostBuilder(site, user)
         post = (builder.set_language()

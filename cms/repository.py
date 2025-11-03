@@ -15,6 +15,13 @@ from cms.models import (
     User,
 )
 from cms.events import Observer
+from cms.exceptions import (
+    ValidationError,
+    PermissionDeniedError,
+    ResourceNotFoundError,
+    AuthenticationError,
+    RepositoryError,
+)
 
 
 class UserRepository:
@@ -35,19 +42,39 @@ class UserRepository:
         return list(self.__users.values())
 
     def validate_user(self, username: str, password: str) -> User:
-        selected_user = None
-        for user in self.__users.values():
-            if user.username == username:
-                selected_user = user
-                break
+        """
+        valida as credenciais do usuário.
+        
+        raises:
+            ValidationError: Se username ou password estão vazios
+            AuthenticationError: Se credenciais são inválidas
+        """
+        try:
+            # Valida entrada
+            if not username or not username.strip():
+                raise ValidationError("Username não pode estar vazio.")
+            if not password or not password.strip():
+                raise ValidationError("Senha não pode estar vazia.")
+            
+            # Busca o usuário
+            selected_user = None
+            for user in self.__users.values():
+                if user.username == username:
+                    selected_user = user
+                    break
 
-        if not selected_user:
-            raise ValueError("Credenciais inválidas.")
+            if not selected_user:
+                raise AuthenticationError("Credenciais inválidas.")
 
-        if selected_user.password != password:
-            raise ValueError("Credenciais inválidas.")
+            if selected_user.password != password:
+                raise AuthenticationError("Credenciais inválidas.")
 
-        return selected_user
+            return selected_user
+            
+        except (ValidationError, AuthenticationError):
+            raise
+        except Exception as e:
+            raise RepositoryError(f"Erro ao validar usuário: {str(e)}")
 
     def delete_user(self, user_id: int):
         self.__users.pop(user_id)
@@ -283,7 +310,26 @@ class MediaRepository:
         return [media for media in self.__medias.values() if media.site.id == site.id]
 
     def get_media_by_id(self, media_id: int) -> MediaFile:
-        return self.__medias[media_id]
+        """
+        recupera uma mídia pelo ID.
+        
+        raises:
+            ValidationError: Se media_id é inválido
+            ResourceNotFoundError: Se mídia não existe
+        """
+        try:
+            if not isinstance(media_id, int) or media_id <= 0:
+                raise ValidationError(f"ID de mídia inválido: {media_id}")
+            
+            if media_id not in self.__medias:
+                raise ResourceNotFoundError(f"Mídia com ID {media_id} não encontrada.")
+            
+            return self.__medias[media_id]
+            
+        except (ValidationError, ResourceNotFoundError):
+            raise
+        except Exception as e:
+            raise RepositoryError(f"Erro ao recuperar mídia: {str(e)}")
 
     def remove_media(self, media_id: int):
         self.__medias.pop(media_id)

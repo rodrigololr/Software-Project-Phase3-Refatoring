@@ -37,7 +37,7 @@ class SiteTemplate(ABC):
     def display_post(self, post: Post):
         post.display_post_short()
 
-
+# implementação do strategy
 class TopPostsFirstTemplate(SiteTemplate):
     def select_posts(self):
         return sorted(
@@ -46,7 +46,7 @@ class TopPostsFirstTemplate(SiteTemplate):
             reverse=True,
         )
 
-
+# implementação do strategy
 class TopCommentsFirstTemplate(SiteTemplate):
     def select_posts(self):
         return sorted(
@@ -55,7 +55,7 @@ class TopCommentsFirstTemplate(SiteTemplate):
             reverse=True,
         )
 
-
+# implementação do strategy
 class FocusOnMediaTemplate(SiteTemplate):
     def select_posts(self):
         return [
@@ -67,7 +67,7 @@ class FocusOnMediaTemplate(SiteTemplate):
     def display_post(self, post: Post):
         post.display_first_post_image()
 
-
+# implementação do strategy
 class LatestPostsTemplate(SiteTemplate):
     def select_posts(self):
         return sorted(

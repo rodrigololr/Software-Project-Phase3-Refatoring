@@ -6,6 +6,7 @@ from cms.services.social_media import SocialMedia, get_social_media_poster
 from cms.utils import select_enum
 from cms.views.menu import AbstractMenu, MenuOptions
 from cms.context import AppContext
+from cms.exceptions import OperationFailedError, ValidationError
 
 
 class PostMenu(AbstractMenu):
@@ -60,24 +61,35 @@ class PostMenu(AbstractMenu):
         input("\nClique Enter para voltar ao Menu.")
 
     def _comment_on_post(self):
-        body = input("Digite seu comentário: ")
-        comment = Comment(post=self.selected_post, commenter=self.logged_user, body=body)
-        
-        # salva o comentário no repositório
-        AppContext().comment_repo.add_comment(comment)
+        try:
+            body = input("Digite seu comentário: ").strip()
+            if not body:
+                raise ValidationError("Comentário não pode estar vazio.")
+            
+            comment = Comment(post=self.selected_post, commenter=self.logged_user, body=body)
+            
+            # salva o comentário no repositório
+            AppContext().comment_repo.add_comment(comment)
 
-        # dispara o evento "POST_COMMENTED" em vez de logar diretamente
-        # O analyticsrepository, que é um observador
-        AppContext().event_manager.notify(
-            "POST_COMMENTED",
-            user=self.logged_user,
-            site=self.selected_site,
-            post=self.selected_post,
-            comment_id=comment.id  # Passa o ID do comentário para o log
-        )
-        
-        print("Comentário adicionado com sucesso.")
-        input("Clique Enter para voltar.")
+            # dispara o evento "POST_COMMENTED" em vez de logar diretamente
+            # O analyticsrepository, que é um observador
+            AppContext().event_manager.notify(
+                "POST_COMMENTED",
+                user=self.logged_user,
+                site=self.selected_site,
+                post=self.selected_post,
+                comment_id=comment.id  # Passa o ID do comentário para o log
+            )
+            
+            print("Comentário adicionado com sucesso.")
+            input("Clique Enter para voltar.")
+            
+        except ValidationError as e:
+            print(f"Erro: {e}")
+            input("Clique Enter para voltar.")
+        except Exception as e:
+            print(f"Erro ao adicionar comentário: {str(e)}")
+            input("Clique Enter para voltar.")
 
 
     def _change_post_language(self):
@@ -90,46 +102,60 @@ class PostMenu(AbstractMenu):
         self.selected_post_language = AppContext().lang_service.select_language(languages)
 
     def _sharing_suggestion(self):
-        print("Esta ferramenta te ajuda a estruturar seu Post para compartilhamento em redes sociais.")
-        print("\nPara obter sugestões, escolha o idioma do Post e a rede social.")
-        languages = self.selected_post.get_languages()
-        language = languages[0] if len(languages) == 1 else AppContext().lang_service.select_language(languages)
-        if not language:
-            input("Não é possível continuar sem escolher um idioma. Clique Enter para voltar")
-            return
-        
-        print(" ")
-        social_media = select_enum(SocialMedia, "Selecione uma rede social: ")
-        if not social_media:
-            input("Não é possível continuar sem escolher uma Rede Social. Clique Enter para voltar")
-            return
+        try:
+            print("Esta ferramenta te ajuda a estruturar seu Post para compartilhamento em redes sociais.")
+            print("\nPara obter sugestões, escolha o idioma do Post e a rede social.")
+            languages = self.selected_post.get_languages()
+            language = languages[0] if len(languages) == 1 else AppContext().lang_service.select_language(languages)
+            if not language:
+                input("Não é possível continuar sem escolher um idioma. Clique Enter para voltar")
+                return
+            
+            print(" ")
+            social_media = select_enum(SocialMedia, "Selecione uma rede social: ")
+            if not social_media:
+                input("Não é possível continuar sem escolher uma Rede Social. Clique Enter para voltar")
+                return
 
-        os.system('clear' if os.name == 'posix' else 'cls')
-        print(f"Post: {self.selected_post.get_default_title()}")
-        print(f"Idioma: {language.name}")
-        print(f"Rede Social: {social_media.value}")
+            os.system('clear' if os.name == 'posix' else 'cls')
+            print(f"Post: {self.selected_post.get_default_title()}")
+            print(f"Idioma: {language.name}")
+            print(f"Rede Social: {social_media.value}")
 
-        poster_factory = get_social_media_poster(social_media)
-        social_post = poster_factory.create_post(self.selected_post, language)
-        
-        social_post.display_sharing_suggestion()
-        input("\nRecomendação finalizada. Clique Enter para voltar.")
+            poster_factory = get_social_media_poster(social_media)
+            social_post = poster_factory.create_post(self.selected_post, language)
+            
+            social_post.display_sharing_suggestion()
+            input("\nRecomendação finalizada. Clique Enter para voltar.")
+            
+        except Exception as e:
+            print(f"Erro ao gerar sugestão de compartilhamento: {str(e)}")
+            input("Clique Enter para voltar.")
 
     def _translate_post(self):
-        pt = PostTranslator(self.selected_post)
-        pt.translate()
+        try:
+            pt = PostTranslator(self.selected_post)
+            pt.translate()
+        except Exception as e:
+            print(f"Erro ao traduzir post: {str(e)}")
+            input("Clique Enter para voltar.")
 
     def _show_post_analytics(self):
-        analytics_repo = AppContext().analytics_repo
-        views = analytics_repo.get_post_views(self.selected_post.id)
-        shares = analytics_repo.get_post_shares(self.selected_post.id)
-        comments = analytics_repo.get_post_comments(self.selected_post.id)
+        try:
+            analytics_repo = AppContext().analytics_repo
+            views = analytics_repo.get_post_views(self.selected_post.id)
+            shares = analytics_repo.get_post_shares(self.selected_post.id)
+            comments = analytics_repo.get_post_comments(self.selected_post.id)
 
-        self.selected_post.display_post_short()
-        print(f"Visualizações: {views}")
-        print(f"Comentários: {comments}")
-        print(f"Compartilhamentos: {shares}")
-        input("\nClique Enter para voltar ao Menu.")
+            self.selected_post.display_post_short()
+            print(f"Visualizações: {views}")
+            print(f"Comentários: {comments}")
+            print(f"Compartilhamentos: {shares}")
+            input("\nClique Enter para voltar ao Menu.")
+            
+        except Exception as e:
+            print(f"Erro ao exibir estatísticas: {str(e)}")
+            input("Clique Enter para voltar.")
 
     def _show_seo_report(self):
         languages = self.selected_post.get_languages()
