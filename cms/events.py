@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List
+from cms.exceptions import CMSException
 
 
 class Observer(ABC):
@@ -34,7 +35,6 @@ class EventManager:
             for observer in list(self._subscribers[event_type]):
                 try:
                     observer.update(event_type, *args, **kwargs)
-                except Exception:
-                    # Não deve interromper notificações a outros observadores.
-                    # Se desejar, adicione logging aqui.
+                except CMSException:
+                    print(f"Erro ao notificar observador para o evento {event_type}.")
                     pass

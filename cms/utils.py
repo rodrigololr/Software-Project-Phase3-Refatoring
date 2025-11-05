@@ -4,7 +4,7 @@ from typing import Type, TypeVar
 import re
 
 from cms.models import MediaType
-from cms.exceptions import InvalidInputError, MediaError, ValidationError, InvalidNameError
+from cms.exceptions import InvalidInputError, MediaError, ValidationError, InvalidNameError, CMSException
 
 
 def validate_name(name: str, field_name: str = "Nome") -> str:
@@ -186,7 +186,7 @@ def infer_media_type(extension: str) -> MediaType:
             
     except (ValidationError, MediaError):
         raise
-    except Exception as e:
+    except CMSException as e:
         raise MediaError(f"Erro ao inferir tipo de mídia: {str(e)}")
 
 
@@ -223,7 +223,7 @@ def select_enum(enum_cls: Type[E], prompt: str = "Escolha uma opção:") -> E | 
 
             return list(enum_cls)[selected_option - 1]
             
-    except Exception as e:
+    except CMSException as e:
         print(f"Erro ao selecionar opção: {str(e)}")
         return None
     finally:

@@ -14,7 +14,7 @@ from cms.models import (
 )
 from cms.repository import MediaRepository
 from cms.context import AppContext
-from cms.exceptions import ValidationError, ResourceNotFoundError
+from cms.exceptions import ValidationError, ResourceNotFoundError, CMSException
 
 
 class PostBuilder:
@@ -60,7 +60,7 @@ class PostBuilder:
             return self
         except ValidationError:
             raise
-        except Exception as e:
+        except CMSException as e:
             raise ValidationError(f"Erro ao definir título: {str(e)}")
 
     def add_content_blocks(self) -> 'PostBuilder':
@@ -105,7 +105,7 @@ class PostBuilder:
                     print("Opção inválida. Tente novamente.")
             return self
             
-        except Exception as e:
+        except CMSException as e:
             raise ValidationError(f"Erro ao adicionar blocos de conteúdo: {str(e)}")
 
     def set_schedule_date(self) -> 'PostBuilder':
@@ -170,6 +170,6 @@ class PostBuilder:
                 except ValueError:
                     print("Opção inválida. Por favor, digite um número.\n")
                     
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao selecionar mídia: {str(e)}")
             return None

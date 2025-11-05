@@ -21,6 +21,7 @@ from cms.exceptions import (
     ResourceNotFoundError,
     AuthenticationError,
     RepositoryError,
+    CMSException,
 )
 
 
@@ -73,7 +74,7 @@ class UserRepository:
             
         except (ValidationError, AuthenticationError):
             raise
-        except Exception as e:
+        except CMSException as e:
             raise RepositoryError(f"Erro ao validar usuário: {str(e)}")
 
     def delete_user(self, user_id: int):
@@ -328,7 +329,7 @@ class MediaRepository:
             
         except (ValidationError, ResourceNotFoundError):
             raise
-        except Exception as e:
+        except CMSException as e:
             raise RepositoryError(f"Erro ao recuperar mídia: {str(e)}")
 
     def remove_media(self, media_id: int):
