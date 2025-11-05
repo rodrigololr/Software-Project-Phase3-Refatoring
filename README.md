@@ -63,9 +63,9 @@ python main.py
 * **Aplicação no Projeto**: O padrão foi usado para refatorar o sistema de menus implementei no `LoggedMenu`. Em vez de o menu chamar diretamente as funções, cada opção do menu é agora um objeto **Comando**. O menu simplesmente mantém uma lista desses comandos e executa o que for selecionado pelo usuário. Isso desacopla o menu da lógica das ações, tornando o sistema mais extensível e organizado.
 
 
-### 3. Observer (Observador)
+#### 3. Observer (Observador)
 * **O que é?**: O padrão Observer define uma dependência um-para-muitos entre objetos, de modo que quando um objeto muda de estado, todos os seus dependentes são notificados e atualizados automaticamente.
-* **Aplicação no Projeto**: Este padrão foi implementado para desacoplar o sistema de `Analytics` do restante da aplicação. Antes, os menus e comandos precisavam chamar diretamente o `analytics_repo.log()` para registrar uma ação. Agora, eles apenas disparam um evento `(ex: "POST_VIEWED")`. O `AnalyticsRepository`` atua como um Observador, que "escuta" esses eventos e reage criando o log correspondente. Dessa forma, os menus não precisam saber que o sistema de analytics existe, tornando o código mais flexível e fácil de manter.
+* **Aplicação no Projeto**: Este padrão foi implementado para desacoplar o sistema de `Analytics` do restante da aplicação. Antes, os menus e comandos precisavam chamar diretamente o `analytics_repo.log()` para registrar uma ação. Agora, eles apenas disparam um evento `(ex: "POST_VIEWED")`. O `AnalyticsRepository` atua como um Observador, que "escuta" esses eventos e reage criando o log correspondente. Dessa forma, os menus não precisam saber que o sistema de analytics existe, tornando o código mais flexível e fácil de manter.
 
 
 ## Padrões de Projeto Criacionais
@@ -103,6 +103,28 @@ python main.py
 * **Aplicação no Projeto**: Este padrão foi implementado em `cms/services/notification_adapter.py` com a interface `NotificationAdapter` e três implementações concretas: `ConsoleNotificationAdapter`, `EmailNotificationAdapter` e `LogNotificationAdapter`. O adapter permite que diferentes tipos de notificações sejam enviados sem acoplamento. A `PostManagementFacade` utiliza o adapter para notificar o usuário quando um post é criado. Se futuramente for necessário mudar o serviço de notificação (de console para e-mail, por exemplo), basta injetar um adapter diferente sem alterar o código da fachada.
 
 
-### 
+## Tratamentos de Erros
+O sistema implementa tratamentos de erros para garantir robustez e uma boa experiência do usuário. Alguns dos principais tratamentos incluem:
+- **CMSException**: Classe base para todas as exceções personalizadas do CMS.
+- **ValidationError**: Lançada quando há falhas de validação de dados, como campos obrigatórios ausentes ou formatos inválidos.
+- **InvalidNameError**: Lançada quando um nome fornecido não atende aos critérios esperados (ex: nome de usuário, título do post).
+- **PermissionDeniedError**: Lançada quando um usuário tenta acessar um recurso ou realizar uma ação para a qual não tem permissão.
+- **ResourceNotFoundError**: Lançada quando um recurso solicitado (ex: post, site, mídia) não é encontrado no sistema.
+- **AuthenticationError**: Lançada quando há falha na autenticação do usuário (ex: credenciais inválidas).
+- **MediaError**: Lançada quando há um problema com a mídia (ex: arquivo não encontrado, formato inválido).
+- **LanguageError**: Lançada quando há um problema relacionado ao idioma (ex: idioma não suportado).
+- **PostError**: Lançada para erros específicos relacionados a posts (ex: agendamento inválido, conteúdo ausente).
+- **RepositoryError**: Lançada para erros relacionados ao repositório de dados (ex: falha na conexão, operação inválida).
+- **InvalidInputError**: Lançada quando a entrada do usuário é inválida ou não pode ser processada.
+- **OperationFailedError**: Lançada quando uma operação não pode ser concluída com sucesso devido a condições inesperadas.
+
+Essas são as Exceptions personalizadas implementadas no sistema. Elas ajudam a identificar e tratar erros de forma específica, facilitando a depuração e melhorando a experiência do usuário final. Há mais informação no `cms/exceptions.py`.
+
+
+Já erros que tinham no python já utilizei(Algumas implementadas por mim e outras por Arthur Pontes(Dono do projeto OOP-CMS) que eu mantive):
+- **ValueError**: Usada para indicar que uma função recebeu um argumento com o tipo correto, mas valor inapropriado.
+- **IndexError**: Usada para indicar que um índice está fora do intervalo válido para uma sequência (como listas ou tuplas).
+- **PermissionError**: Usada para indicar que uma operação não pôde ser concluída devido a falta de permissões adequadas.
+
 
 
