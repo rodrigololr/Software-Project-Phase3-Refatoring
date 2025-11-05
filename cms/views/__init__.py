@@ -3,7 +3,7 @@ from cms.views.logged_menu import LoggedMenu
 from cms.views.menu import AbstractMenu, MenuOptions, clear_screen
 from cms.context import AppContext
 from cms.populate import populate
-from cms.exceptions import ValidationError, AuthenticationError, RepositoryError, InvalidNameError
+from cms.exceptions import ValidationError, AuthenticationError, RepositoryError, InvalidNameError, CMSException
 from cms.utils import validate_name, validate_email, validate_username, validate_password
 
 
@@ -12,7 +12,7 @@ class Menu(AbstractMenu):
         # acesso a instância singleton diretamente e popula o dados
         try:
             populate(AppContext())
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao popula dados: {str(e)}")
             raise
 
@@ -21,7 +21,7 @@ class Menu(AbstractMenu):
             self._main_menu()
         except KeyboardInterrupt:
             print("\n Saindo.")
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro inesperado: {str(e)}")
 
     def _main_menu(self):
@@ -62,7 +62,7 @@ class Menu(AbstractMenu):
             clear_screen()
             try:
                 options[selected_option - 1]["function"]()
-            except Exception as e:
+            except CMSException as e:
                 print(f"Erro ao executar opção: {str(e)}")
                 input("Clique Enter para voltar.")
 
@@ -88,7 +88,7 @@ class Menu(AbstractMenu):
         except ValidationError as e:
             print(f"Erro de validação: {e}")
             input("Clique Enter para voltar.")
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao criar usuário: {str(e)}")
             input("Clique Enter para voltar.")
 
@@ -121,7 +121,7 @@ class Menu(AbstractMenu):
                 clear_screen()
                 print(f"Erro no sistema: {e}\n")
                 input("Clique Enter para tentar novamente.")
-            except Exception as e:
+            except CMSException as e:
                 clear_screen()
                 print(f"Erro inesperado: {str(e)}\n")
                 input("Clique Enter para tentar novamente.")

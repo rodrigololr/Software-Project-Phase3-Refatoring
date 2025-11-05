@@ -4,7 +4,7 @@ from cms.models import User, UserRole, Site, Permission, SiteAction, SiteAnalyti
 from cms.context import AppContext
 from cms.views.site_menu import SiteMenu
 from cms.views.menu import AbstractMenu
-from cms.exceptions import ValidationError, RepositoryError, OperationFailedError
+from cms.exceptions import ValidationError, RepositoryError, OperationFailedError, CMSException
 
 
 class Command(ABC):
@@ -28,7 +28,7 @@ class ShowProfileCommand(Command):
             print(f"E-mail: {self.user.email}")
             print(f"Role: {self.user.role.name}")
             input("\nClique Enter para voltar ao Menu.")
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao exibir perfil: {str(e)}")
             input("Clique Enter para voltar.")
 
@@ -62,7 +62,7 @@ class CreateSiteCommand(Command):
         except ValidationError as e:
             print(f"Erro de validação: {e}")
             input("Clique Enter para voltar.")
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao criar site: {str(e)}")
             input("Clique Enter para voltar.")
 
@@ -85,14 +85,14 @@ class SelectSiteCommand(Command):
                         site=selected_site
                     )
                     SiteMenu(self.user, selected_site).show()
-                except Exception as e:
+                except CMSException as e:
                     print(f"Erro ao acessar site: {str(e)}")
                     input("Clique Enter para voltar.")
 
             AbstractMenu.prompt_generic(
                 sites, "Sites disponíveis", execute_for_option, lambda m: m.name
             )
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao listar sites: {str(e)}")
             input("Clique Enter para voltar.")
 
@@ -113,7 +113,7 @@ class ShowUserSitesCommand(Command):
                     print(f"{i + 1}. {site.name}")
             
             input("\nClique Enter para voltar ao Menu.")
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao listar sites: {str(e)}")
             input("Clique Enter para voltar.")
 
@@ -151,6 +151,6 @@ class ShowLogsCommand(Command):
 
             input("\nClique Enter para voltar ao menu.")
             
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao exibir logs: {str(e)}")
             input("Clique Enter para voltar.")

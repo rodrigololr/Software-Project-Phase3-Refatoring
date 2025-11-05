@@ -6,7 +6,7 @@ from cms.utils import infer_media_type
 from cms.views.media_detail_menu import MediaMenu
 from cms.views.menu import AbstractMenu, MenuOptions
 from cms.context import AppContext
-from cms.exceptions import ValidationError, MediaError, ResourceNotFoundError
+from cms.exceptions import ValidationError, MediaError, ResourceNotFoundError, CMSException
 
 
 class MediaLibraryMenu(AbstractMenu):
@@ -90,7 +90,7 @@ class MediaLibraryMenu(AbstractMenu):
         except ValidationError as e:
             print(f"Erro de validação: {e}")
             input("Clique Enter para voltar.")
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao importar mídia: {str(e)}")
             input("Clique Enter para voltar.")
 
@@ -109,7 +109,7 @@ class MediaLibraryMenu(AbstractMenu):
             def execute_for_option(selected_media: MediaFile):
                 try:
                     MediaMenu(selected_media).show()
-                except Exception as e:
+                except CMSException as e:
                     print(f"Erro ao abrir mídia: {str(e)}")
                     input("Clique Enter para voltar.")
 
@@ -120,6 +120,6 @@ class MediaLibraryMenu(AbstractMenu):
                 lambda m: m.filename,
             )
             
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao listar mídias: {str(e)}")
             input("Clique Enter para voltar.")

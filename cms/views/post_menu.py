@@ -6,7 +6,7 @@ from cms.services.social_media import SocialMedia, get_social_media_poster
 from cms.utils import select_enum
 from cms.views.menu import AbstractMenu, MenuOptions
 from cms.context import AppContext
-from cms.exceptions import OperationFailedError, ValidationError
+from cms.exceptions import OperationFailedError, ValidationError, CMSException
 
 
 class PostMenu(AbstractMenu):
@@ -87,7 +87,7 @@ class PostMenu(AbstractMenu):
         except ValidationError as e:
             print(f"Erro: {e}")
             input("Clique Enter para voltar.")
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao adicionar comentário: {str(e)}")
             input("Clique Enter para voltar.")
 
@@ -128,7 +128,7 @@ class PostMenu(AbstractMenu):
             social_post.display_sharing_suggestion()
             input("\nRecomendação finalizada. Clique Enter para voltar.")
             
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao gerar sugestão de compartilhamento: {str(e)}")
             input("Clique Enter para voltar.")
 
@@ -136,7 +136,7 @@ class PostMenu(AbstractMenu):
         try:
             pt = PostTranslator(self.selected_post)
             pt.translate()
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao traduzir post: {str(e)}")
             input("Clique Enter para voltar.")
 
@@ -153,7 +153,7 @@ class PostMenu(AbstractMenu):
             print(f"Compartilhamentos: {shares}")
             input("\nClique Enter para voltar ao Menu.")
             
-        except Exception as e:
+        except CMSException as e:
             print(f"Erro ao exibir estatísticas: {str(e)}")
             input("Clique Enter para voltar.")
 

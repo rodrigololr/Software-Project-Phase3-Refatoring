@@ -74,7 +74,8 @@ class SiteMenu(AbstractMenu):
             print("\nPost criado com sucesso. Clique Enter para voltar ao menu.")
             input()
 
-        except ValueError as e:
+        # pode lançar tanto ValueError (se o idioma não for selecionado) quanto ValidationError (se o título estiver vazio)
+        except (ValueError, ValidationError) as e: 
             print(f"\nErro na criação do post: {e}")
             input("Clique Enter para voltar ao menu.")
 
